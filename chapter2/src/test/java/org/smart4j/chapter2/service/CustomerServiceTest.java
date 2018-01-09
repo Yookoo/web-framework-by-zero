@@ -1,12 +1,11 @@
 package org.smart4j.chapter2.service;
 
-import static org.junit.Assert.fail;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.smart4j.chapter2.model.Customer;
 /**
@@ -17,24 +16,17 @@ import org.smart4j.chapter2.model.Customer;
  */
 public class CustomerServiceTest {
 
-	private final CustomerService customerService;
+	private CustomerService customerService;
 
-	public CustomerServiceTest(CustomerService customerService) {
-		super();
-		this.customerService = customerService;
-	}
-
-	@Test
+	@Before
 	public void init() {
-		// TODO 初始化数据库
+		this.customerService = new CustomerService();
 	}
-	
 	@Test
 	public void testGetCustomerList() {
-		String keyword = null;
-		List<Customer> customerList = customerService.getCustomerList(keyword);
+		List<Customer> customerList = customerService.getCustomerList();
+		System.out.println(customerList);
 		Assert.assertEquals(2, customerList.size());
-		
 	}
 	
 	@Test
@@ -64,7 +56,7 @@ public class CustomerServiceTest {
 	}
 	
 	@Test
-	public void testDeleteCustomer() {
+	public void deleteCustomer() {
 		long id = 1;
 		boolean result = customerService.deleteCustomer(id);
 		Assert.assertTrue(result);
