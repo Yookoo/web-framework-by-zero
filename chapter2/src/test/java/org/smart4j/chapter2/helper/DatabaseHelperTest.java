@@ -1,14 +1,26 @@
 package org.smart4j.chapter2.helper;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.smart4j.chapter2.model.Customer;
 
 public class DatabaseHelperTest {
 
+	@Before
+	public void init() throws IOException {
+		String filePath = "sql/insert.sql";
+		DatabaseHelper.executeSqlFile(filePath);
+	} 
+	
+	
 	@Test
 	public void testInsertEntity() {
 		

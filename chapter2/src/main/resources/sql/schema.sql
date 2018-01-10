@@ -8,5 +8,3 @@ CREATE TABLE Customer(
     PRIMARY KEY(ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO TEST VALUES(1, 'Customer1','Jack','15639749320','Jack@gmail.com',null);
-INSERT INTO TEST VALUES(2, 'Customer1','rose','15639749321','rose@gmail.com',null);

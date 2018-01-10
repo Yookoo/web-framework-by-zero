@@ -1,5 +1,9 @@
 package org.smart4j.chapter2.helper;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -8,7 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.management.DescriptorKey;
+
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -29,28 +36,35 @@ public class DatabaseHelper {
 	 */
 	private static final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
 
-	private static final String DRIVER;
-	private static final String URL;
-	private static final String USERNAME;
-	private static final String PASSWORD;
+	
+	/**
+	 * dbcp 连接池
+	 */
+	private static final BasicDataSource dataSource;
+	
+	private static final String FILE_NAME = "config.properties";
+	private static final String DRIVER = "jdbc.driver";
+	private static final String URL = "jdbc.url";
+	private static final String USERNAME = "jdbc.username";
+	private static final String PASSWORD = "jdbc.password";
 
 	/**
 	 * 使用静态代码块初始化常量
 	 */
 
 	static {
-		Properties config = PropsUtil.loadProps("config.properties");
-		DRIVER = config.getProperty("jdbc.driver");
-		URL = config.getProperty("jdbc.url");
-		USERNAME = config.getProperty("jdbc.username");
-		PASSWORD = config.getProperty("jdbc.password");
+		
+		Properties config = PropsUtil.loadProps(FILE_NAME);
 
-		try {
-			Class.forName(DRIVER);
-		} catch (ClassNotFoundException e) {
-			logger.error("load jdbc driver failure!", e);
-		}
+		dataSource = new BasicDataSource();
+		dataSource.setDriverClassName(config.getProperty(DRIVER));
+		dataSource.setUrl(config.getProperty(URL));
+		dataSource.setUsername(config.getProperty(USERNAME));
+		dataSource.setPassword(config.getProperty(PASSWORD));
+		
+		
 	}
+
 
 	/**
 	 * 查询实体列表
@@ -64,9 +78,7 @@ public class DatabaseHelper {
 		} catch (SQLException e) {
 			logger.error("query entry list failure!", e);
 			new RuntimeException(e);
-		} finally {
-			closeConnection();
-		}
+		} 
 		return entityList;
 	}
 
@@ -82,9 +94,7 @@ public class DatabaseHelper {
 		} catch (SQLException e) {
 			logger.error("query entry failure!", e);
 			new RuntimeException(e);
-		} finally {
-			closeConnection();
-		}
+		} 
 		return entity;
 	}
 
@@ -103,9 +113,7 @@ public class DatabaseHelper {
 		} catch (SQLException e) {
 			logger.error("execute query failure!", e);
 			new RuntimeException(e);
-		} finally {
-			closeConnection();
-		}
+		} 
 		return result;
 	}
 
@@ -121,9 +129,7 @@ public class DatabaseHelper {
 		} catch (SQLException e) {
 			logger.error("execute update failure!", e);
 			new RuntimeException(e);
-		} finally {
-			closeConnection();
-		}
+		} 
 		return rows;
 	}
 
@@ -215,7 +221,7 @@ public class DatabaseHelper {
 		Connection connection = connectionHolder.get();
 		if (connection == null) {
 			try {
-				connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+				connection = dataSource.getConnection();
 			} catch (SQLException e) {
 				logger.error("get connection failure!", e);
 				throw new RuntimeException(e);
@@ -229,11 +235,27 @@ public class DatabaseHelper {
 		return connection;
 	}
 
+	public static void executeSqlFile(String filePath){
+		
+		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		String sql ;
+		try {
+			while ((sql = reader.readLine())!= null) {
+				DatabaseHelper.executeUpdate(sql);
+			}
+		} catch (IOException e) {
+			logger.error("execute sql file failure!", e);
+		}
+	}
+	
 	/**
 	 * 关闭数据库连接
+	 * (使用dataSource连接池后，此方法弃用，并删除了所有finally中的closeConnection()方法)
 	 * 
 	 * @param connection
 	 */
+	@Deprecated
 	public static void closeConnection() {
 		/**
 		 * 从ThreadLocal中获取 connection
@@ -248,6 +270,18 @@ public class DatabaseHelper {
 			} finally {
 				connectionHolder.remove();
 			}
+		}
+	}
+	
+	/**
+	 * 使用连接池之后此方法弃用
+	 */
+	@Deprecated
+	public static void loadJdbcDriver() {
+		try {
+			Class.forName(DRIVER);
+		} catch (ClassNotFoundException e) {
+			logger.error("load jdbc driver failure!", e);
 		}
 	}
 }
