@@ -50,14 +50,14 @@ public class PropsUtil {
 	/**
 	 * 获取字符型属性（默认为空字符串）
 	 */
-	public String getString(Properties props, String key) {
+	public static String getString(Properties props, String key) {
 		return getString(props,key,"");
 	}
 	
 	/**
 	 * 获取字符型属性（可以指定默认值）
 	 */
-	public String getString(Properties props, String key,String deaultValue) {
+	public static String getString(Properties props, String key,String deaultValue) {
 		String value = deaultValue;
 		if(props.containsKey(key)) {
 			value = props.getProperty(key);
